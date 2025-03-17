@@ -1,10 +1,17 @@
+<h3 align="center">
+  <img
+    alt="Image of a colorful hollow hexagon as the logo of this program"
+    title="Kin"
+    height="160"
+    src="assets/kin_logo3.png"
+  />
+</h3>
 
 <div align="center">
   <h1>Kin-Portfolio-Rebalancer</h1>
 </div>
 
-<p align="center">Cross-platform automated portfolio rebalancer based on the Gate.io API</p>
-<p align="center">跨平台自动化投资组合再平衡机器人，基于Gate.io交易所API</p>
+<p align="center">Cross-platform automated portfolio rebalancer based on the Gate.io API<br>跨平台投资组合再平衡机器人，基于Gate.io交易所API</p>
 
 <p align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/license-MIT-blue">
@@ -20,9 +27,45 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 - Cross-platform desktop GUI built with Rust (egui).
 - Python backend handles communication with Gate.io exchange and rebalancing logic.
 
+## Usage
+
+### Pre-built executables
+
+See the
+[releases page](https://github.com/jtroo/kanata/releases)
+for executables and instructions.
+
+### Build it yourself
+
+This project uses the latest Rust stable toolchain. If you installed the
+Rust toolchain using `rustup`, e.g. by using the instructions from the
+[official website](https://www.rust-lang.org/learn/get-started),
+you can get the latest stable toolchain with `rustup update stable`.
+
+<details>
+<summary>Instructions</summary>
+
+Using `cargo install`:
+
+    cargo install kanata
+
+    # On Linux and macOS, this might not work without `sudo`,
+
+Build and run yourself in Linux:
+
+    git clone https://github.com/jtroo/kanata && cd kanata
+    cargo build  
 
 
-## 项目结构
+Build and run yourself in Windows.
+
+    git clone https://github.com/jtroo/kanata; cd kanata
+    cargo build   
+
+</details>
+
+
+## Structure
 
 ```
 portfolio-rebalancer/
@@ -40,6 +83,8 @@ portfolio-rebalancer/
 
 
 ## What does the name mean?
+
+"kin" is the reading of the character "鈞", an ancient Chinese unit of weight. 
 
 ## Donations
 

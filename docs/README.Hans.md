@@ -1,12 +1,13 @@
-
 <div align="center">
   <h1>Kin-Portfolio-Rebalancer</h1>
 </div>
-<p align="center">跨平台自动化投资组合再平衡机器人，基于Gate.io交易所API</p>
+
+<p align="center">Cross-platform automated portfolio rebalancer based on the Gate.io API<br>跨平台自动化投资组合再平衡机器人，基于Gate.io交易所API</p>
 
 <p align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/license-MIT-blue">
 </p>
+
 
 
 Read this in [繁體中文](https://github.com/btxLithium/Kin-Portfolio-Rebalancer/blob/main/docs/README.Hant.md)
@@ -35,11 +36,9 @@ portfolio-rebalancer/
 
 
 
-## What does the name mean?
-
 ## Donations
 
-If you'd like to support my work, consider buy me a coffee:
+如果您想支持我的工作， 可以考虑请我喝杯咖啡:
 
 - USDT or USDC Aptos:  
 0x675422152a1dcb2eba3011a5f2901d9756ca7be872db10caa3a4dd7f25482e8e  
