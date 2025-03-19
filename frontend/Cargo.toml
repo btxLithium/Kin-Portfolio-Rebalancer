@@ -1,13 +1,13 @@
 [package]
 name = "kin-portfolio-rebalancer-gui"
 version = "0.1.0"
-edition = "2025.3"
+edition = "2024"
 authors = ["Junhan Sui"]
 description = "GUI for kin portfolio rebalancer"
 
 [dependencies]
-eframe = "0.22.0"
-egui = "0.22.0"
+eframe = "0.31.1"
+egui = "0.31.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"

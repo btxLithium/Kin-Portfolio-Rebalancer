@@ -16,7 +16,7 @@ Read this in [繁體中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 
 - 基于阈值的再平衡：当资产配置偏离目标百分比达到设定阈值时，自动调整投资组合
 - 现金流再平衡：当有新的稳定币(USDT或USDC)入账时，自动调整投资组合
-- Rust(egui)构建的跨平台简洁桌面GUI
+- Rust(egui)构建的跨平台桌面GUI
 - Python后端处理与Gate.io交易所的通信和再平衡逻辑
 
 ## 项目结构

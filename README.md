@@ -25,7 +25,7 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 - Threshold-based Rebalancing: Automatically adjusts the portfolio when asset allocation deviates from the target percentage by a set threshold.
 - Cash Flow Rebalancing: Automatically adjusts the portfolio when new stablecoins (USDT or USDC) are received.
 - Cross-platform desktop GUI built with Rust (egui).
-- Python backend handles communication with Gate.io exchange and rebalancing logic.
+- Python backend handles api keys encryption, communication with Gate.io exchange and rebalancing logic.
 
 ## Usage
 
@@ -33,7 +33,7 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 
 See the
 [releases page](https://github.com/jtroo/kanata/releases)
-for executables and instructions.
+for executables.
 
 ### Build it yourself
 
