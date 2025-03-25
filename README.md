@@ -27,6 +27,11 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 - Cross-platform desktop GUI built with Rust (egui).
 - Python backend handles api keys encryption, communication with Gate.io exchange and rebalancing logic.
 
+## What is a portfolio rebalancer?
+
+A portfolio rebalancer is an automated tool that monitors your cryptocurrency holdings and adjusts them to maintain a predetermined asset allocation. 
+It automatically executes trades to buy or sell assets when market fluctuations cause your portfolio to deviate from your target ratios.
+
 ## Usage
 
 ### Pre-built executables
