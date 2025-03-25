@@ -10,7 +10,6 @@
 
 
 
-Read this in [繁體中文](https://github.com/btxLithium/Kin-Portfolio-Rebalancer/blob/main/docs/README.Hant.md)
 
 ## Features
 

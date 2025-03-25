@@ -18,7 +18,7 @@
 </p>
 
 
-Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalancer/blob/main/docs/README.Hans.md) | [繁體中文](https://github.com/btxLithium/Kin-Portfolio-Rebalancer/blob/main/docs/README.Hant.md)
+Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalancer/blob/main/docs/README.Hans.md)
 
 ## Features
 
