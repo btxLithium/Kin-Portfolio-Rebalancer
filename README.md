@@ -58,19 +58,6 @@ for executables.
    - Windows: Double-click `run.bat` or `frontend\target\release\kin-portfolio-rebalancer-gui.exe`
    - Mac/Linux: Run `./run.sh` in a terminal
 
-### Common Issues
-
-1. If you encounter "Python not found" error:
-   - Make sure Python is installed and added to system PATH
-   - Or specify the full Python path in run.bat
-
-2. Configuration file:
-   - After first run, the configuration file will be saved in your home directory as `.portfolio_rebalancer.json`
-
-
-
-
-
 
 ### Build it yourself
 
@@ -83,19 +70,19 @@ you can get the latest stable toolchain with `rustup update stable`.
 <summary>Instructions</summary>
 
 
-Build and run yourself in Linux:
+Build yourself in Linux:
 
     git clone https://github.com/btxLithium/Kin-Portfolio-Rebalancer 
     cd Kin-Portfolio-Rebalancer
     cd frontend
-    cargo build  
+    cargo build --release
 
 
-Build and run yourself in Windows:
+Build yourself in Windows:
 
     git clone https://github.com/btxLithium/Kin-Portfolio-Rebalancer
     cd .\Kin-Portfolio-Rebalancer\frontend\
-    cargo build   
+    cargo build --release
 
 </details>
 
@@ -120,6 +107,16 @@ portfolio-rebalancer/
 │       └── OPlusSans3.ttf # 默认字体
 
 ```
+
+
+### Common Issues
+
+1. If you encounter "Python not found" error:
+   - Make sure Python is installed and added to system PATH
+   - Or specify the full Python path in run.bat
+
+2. Configuration file:
+   - After first run, the configuration file will be saved in your home directory as `.portfolio_rebalancer.json`
 
 
 
