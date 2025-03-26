@@ -1,6 +1,5 @@
 """
 Configuration settings for the portfolio rebalancer.
-This module holds all the configuration values for the application.
 """
 import os
 from typing import Dict, List, Optional
@@ -8,17 +7,20 @@ import json
 
 # Default portfolio allocation (in percentage)
 DEFAULT_PORTFOLIO = {
-    "BTC_USDT": 25,
-    "ETH_USDT": 15,
-    "LTC_USDT": 10,
-    "USDT": 50
+    "BTC_USDT": 25.0,
+    "ETH_USDT": 15.0,
+    "LTC_USDT": 10.0,
+    "USDT": 50.0
 }
 
 # Rebalancing threshold (in percentage)
-REBALANCE_THRESHOLD = 5
+REBALANCE_THRESHOLD = 5.0
 
 # Minimum USDT inflow to trigger rebalancing
-MIN_USDT_INFLOW = 5
+MIN_USDT_INFLOW = 5.0
+
+# Default check interval (in seconds)
+CHECK_INTERVAL = 60 * 5  # 5 minutes
 
 # API configuration
 API_HOST = "https://fx-api-testnet.gateio.ws/api/v4"
@@ -52,7 +54,23 @@ class Config:
                     data = json.load(f)
                     self.api_key = data.get('api_key', '')
                     self.api_secret = data.get('api_secret', '')
-                    self.portfolio_allocation = data.get('portfolio_allocation', DEFAULT_PORTFOLIO.copy())
+                    
+                    # Handle portfolio allocation - handle both formats
+                    if 'portfolio_allocation' in data:
+                        # If using Rust frontend format
+                        portfolio_data = data['portfolio_allocation']
+                        if isinstance(portfolio_data, dict):
+                            # Old format from Python
+                            self.portfolio_allocation = portfolio_data
+                        else:
+                            # New format from Rust frontend
+                            self.portfolio_allocation = {
+                                "BTC_USDT": portfolio_data.get('btc_usdt', DEFAULT_PORTFOLIO["BTC_USDT"]),
+                                "ETH_USDT": portfolio_data.get('eth_usdt', DEFAULT_PORTFOLIO["ETH_USDT"]),
+                                "LTC_USDT": portfolio_data.get('ltc_usdt', DEFAULT_PORTFOLIO["LTC_USDT"]),
+                                "USDT": portfolio_data.get('usdt', DEFAULT_PORTFOLIO["USDT"])
+                            }
+                    
                     self.rebalance_threshold = data.get('rebalance_threshold', REBALANCE_THRESHOLD)
                     self.min_usdt_inflow = data.get('min_usdt_inflow', MIN_USDT_INFLOW)
             except Exception as e:

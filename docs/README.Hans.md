@@ -33,6 +33,35 @@ portfolio-rebalancer/
 ```
 
 
+## 前提条件
+
+- Python 3.8+
+- 已安装pip
+
+## 安装步骤
+
+1. 解压下载的zip文件到任意目录
+
+2. 安装Python依赖
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. 启动应用程序
+   - Windows: 双击 `run.bat` 或 `frontend\target\release\kin-portfolio-rebalancer-gui.exe`
+   - Mac/Linux: 在终端运行 `./run.sh`
+
+## 常见问题
+
+1. 如果遇到"找不到Python"错误:
+   - 确保Python已安装并添加到系统PATH
+   - 或者在run.bat中指定完整的Python路径
+
+2. 配置文件:
+   - 首次运行后，配置文件将保存在用户主目录下的`.portfolio_rebalancer.json`
+
+---
+
 
 
 ## Donations

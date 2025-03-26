@@ -202,7 +202,152 @@ class GateClient:
             currency_pair: Currency pair symbol (e.g., "BTC_USDT")
             
         Returns:
-            Current price as float
+            Current price as a float
         """
         ticker = self.get_ticker(currency_pair)
-        return float(ticker[0].get("last", "0"))
+        if isinstance(ticker, list) and len(ticker) > 0:
+            ticker = ticker[0]
+        return float(ticker.get("last", "0"))
+
+
+class GateIOFuturesClient(GateClient):
+    """
+    Client for interacting with Gate.io Futures TestNet API.
+    """
+    
+    def __init__(self, api_key: str = "", api_secret: str = ""):
+        """
+        Initialize the Gate.io Futures API client with optional credentials.
+        If not provided, will try to load from config.
+        
+        Args:
+            api_key: Gate.io API key (optional)
+            api_secret: Gate.io API secret (optional)
+        """
+        # Try to load from config if not provided
+        if not api_key or not api_secret:
+            from ..config.settings import Config
+            config = Config()
+            api_key = config.api_key
+            api_secret = config.api_secret
+        
+        super().__init__(api_key, api_secret)
+        self.host = "https://fx-api-testnet.gateio.ws/api/v4"
+    
+    def get_futures_account(self) -> Dict:
+        """
+        Get futures account balances.
+        
+        Returns:
+            Dict of account information
+        """
+        return self._make_request("GET", "/futures/usdt/accounts")
+    
+    def get_futures_positions(self) -> List[Dict]:
+        """
+        Get current futures positions.
+        
+        Returns:
+            List of position information
+        """
+        return self._make_request("GET", "/futures/usdt/positions")
+    
+    def get_futures_contracts(self) -> List[Dict]:
+        """
+        Get available futures contracts.
+        
+        Returns:
+            List of contract information
+        """
+        return self._make_request("GET", "/futures/usdt/contracts")
+    
+    def get_futures_ticker(self, contract: str) -> Dict:
+        """
+        Get ticker for a futures contract.
+        
+        Args:
+            contract: Contract name (e.g., "BTC_USDT")
+            
+        Returns:
+            Ticker information
+        """
+        return self._make_request("GET", "/futures/usdt/tickers", {"contract": contract})
+    
+    def create_futures_order(self, 
+                          contract: str, 
+                          size: float, 
+                          price: float = None, 
+                          leverage: int = 1,
+                          is_close: bool = False,
+                          reduce_only: bool = False) -> Dict:
+        """
+        Create a futures order.
+        
+        Args:
+            contract: Contract name (e.g., "BTC_USDT")
+            size: Order size (positive for buy, negative for sell)
+            price: Order price (None for market orders)
+            leverage: Leverage to use (1-100)
+            is_close: Whether this is a closing position
+            reduce_only: Whether this order should only reduce position
+            
+        Returns:
+            Order creation response
+        """
+        # Set up order data
+        data = {
+            "contract": contract,
+            "size": size,
+            "leverage": leverage,
+            "reduce_only": reduce_only
+        }
+        
+        # Add price for limit orders
+        if price is not None:
+            data["price"] = str(price)
+            data["tif"] = "gtc"  # Good Till Cancel
+        else:
+            # Market order
+            data["tif"] = "ioc"  # Immediate or Cancel
+        
+        # Create the order
+        return self._make_request("POST", "/futures/usdt/orders", data=data)
+    
+    def get_futures_position(self, contract: str) -> Dict:
+        """
+        Get position information for a contract.
+        
+        Args:
+            contract: Contract name (e.g., "BTC_USDT")
+            
+        Returns:
+            Position information
+        """
+        return self._make_request("GET", f"/futures/usdt/positions/{contract}")
+    
+    def set_leverage(self, contract: str, leverage: int) -> Dict:
+        """
+        Set leverage for a contract.
+        
+        Args:
+            contract: Contract name (e.g., "BTC_USDT")
+            leverage: Leverage to use (1-100)
+            
+        Returns:
+            Response
+        """
+        data = {"leverage": leverage}
+        return self._make_request("POST", f"/futures/usdt/positions/{contract}/leverage", data=data)
+    
+    def get_futures_price(self, contract: str) -> float:
+        """
+        Get current price for a futures contract.
+        
+        Args:
+            contract: Contract name (e.g., "BTC_USDT")
+            
+        Returns:
+            Current price as a float
+        """
+        ticker = self.get_futures_ticker(contract)
+        return float(ticker.get("last", "0"))

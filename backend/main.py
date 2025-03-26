@@ -5,20 +5,30 @@ Main entry point for the portfolio rebalancing bot.
 
 import time
 import traceback
-from api.gate_client import GateIOFuturesClient
+import argparse
+from backend.api.gate_client import GateIOFuturesClient
 from portfolio_manager import PortfolioManager
 from backend.services.rebalancer import Rebalancer
-from backend.config.settings import CHECK_INTERVAL, TARGET_PORTFOLIO, LEVERAGE
+from backend.config.settings import Config
 
-def initialize_api_and_components():
+# Default check interval in seconds
+CHECK_INTERVAL = 60 * 5  # 5 minutes
+
+def initialize_api_and_components(config_path=None):
     """
     Initialize API client and related components.
     
+    Args:
+        config_path: Path to configuration file
+        
     Returns:
         tuple: (api_client, portfolio_manager, rebalancer)
     """
+    # Initialize config
+    config = Config(config_path)
+    
     print("Initializing Gate.io Futures API client...")
-    api_client = GateIOFuturesClient()
+    api_client = GateIOFuturesClient(config.api_key, config.api_secret)
     
     print("Initializing Portfolio Manager...")
     portfolio_manager = PortfolioManager(api_client)
@@ -52,18 +62,14 @@ def display_portfolio_status(portfolio_manager):
         print(f"{'Asset':<10} {'Current %':<10} {'Target %':<10} {'Deviation':<10} {'Value (USDT)':<15}")
         print("-"*55)
         
-        for asset in TARGET_PORTFOLIO.keys():
+        target = portfolio_manager.get_target_portfolio()
+        for asset in portfolio_manager.supported_assets:
             current_percent = percentages.get(asset, 0) * 100
-            target_percent = TARGET_PORTFOLIO.get(asset, 0) * 100
+            target_percent = target.get(asset, 0) * 100
             deviation = deviations.get(asset, 0) * 100
             value = portfolio.get(asset, 0)
             
-            # Add leverage info for futures contracts
-            leverage_info = ""
-            if asset in LEVERAGE:
-                leverage_info = f" ({LEVERAGE[asset]}x)"
-            
-            print(f"{asset+leverage_info:<10} {current_percent:>8.2f}% {target_percent:>8.2f}% {deviation:>8.2f}% {value:>13.2f}")
+            print(f"{asset:<10} {current_percent:>8.2f}% {target_percent:>8.2f}% {deviation:>8.2f}% {value:>13.2f}")
         
         print("="*50 + "\n")
     except Exception as e:
@@ -74,10 +80,15 @@ def main():
     """
     Main function to run the rebalancing bot.
     """
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Portfolio Rebalancer')
+    parser.add_argument('--config', type=str, help='Path to config file')
+    args = parser.parse_args()
+    
     print("Starting Portfolio Rebalancing Bot...")
     
     # Initialize components
-    api_client, portfolio_manager, rebalancer = initialize_api_and_components()
+    api_client, portfolio_manager, rebalancer = initialize_api_and_components(args.config)
     
     try:
         # Initial portfolio status

@@ -8,10 +8,10 @@
 </h3>
 
 <div align="center">
-  <h1>Kin-Portfolio-Rebalancer</h1>
+  <h1>Kin Portfolio Rebalancer</h1>
 </div>
 
-<p align="center">Cross-platform automated portfolio rebalancer based on the Gate.io API<br>跨平台投资组合再平衡机器人，基于Gate.io交易所API</p>
+<p align="center">Cross-platform automated portfolio rebalancer for <a href="https://gate.io/">Gate.io</a><br>跨平台投资组合再平衡机器人，基于Gate.io交易所API</p>
 
 <p align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/license-MIT-blue">
@@ -34,11 +34,43 @@ It automatically executes trades to buy or sell assets when market fluctuations 
 
 ## Usage
 
-### Pre-built executables
+### Prerequisites
 
+- Python 3.8+
+- pip installed
+
+### Download Pre-built executables
+TODO:update link
 See the
 [releases page](https://github.com/jtroo/kanata/releases)
 for executables.
+
+### Installation Steps
+
+1. Extract the downloaded zip file to any directory
+
+2. Install Python dependencies
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. Launch the application
+   - Windows: Double-click `run.bat` or `frontend\target\release\kin-portfolio-rebalancer-gui.exe`
+   - Mac/Linux: Run `./run.sh` in a terminal
+
+### Common Issues
+
+1. If you encounter "Python not found" error:
+   - Make sure Python is installed and added to system PATH
+   - Or specify the full Python path in run.bat
+
+2. Configuration file:
+   - After first run, the configuration file will be saved in your home directory as `.portfolio_rebalancer.json`
+
+
+
+
+
 
 ### Build it yourself
 
@@ -50,21 +82,19 @@ you can get the latest stable toolchain with `rustup update stable`.
 <details>
 <summary>Instructions</summary>
 
-Using `cargo install`:
-
-    cargo install kanata
-
-    # On Linux and macOS, this might not work without `sudo`,
 
 Build and run yourself in Linux:
 
-    git clone https://github.com/jtroo/kanata && cd kanata
+    git clone https://github.com/btxLithium/Kin-Portfolio-Rebalancer 
+    cd Kin-Portfolio-Rebalancer
+    cd frontend
     cargo build  
 
 
-Build and run yourself in Windows.
+Build and run yourself in Windows:
 
-    git clone https://github.com/jtroo/kanata; cd kanata
+    git clone https://github.com/btxLithium/Kin-Portfolio-Rebalancer
+    cd .\Kin-Portfolio-Rebalancer\frontend\
     cargo build   
 
 </details>
@@ -81,6 +111,13 @@ portfolio-rebalancer/
 │   ├── services/    # 再平衡服务
 │   └── main.py      # 主程序入口
 ├── frontend/        # Rust前端
+│   ├── src/         # 前端源代码
+│   │   ├── main.rs  # 主程序入口
+│   │   ├── app.rs   # 应用程序逻辑
+│   │   ├── config.rs# 配置文件
+│   │   └── lib.rs   # 库文件
+│   └── fonts/       # 字体文件目录
+│       └── OPlusSans3.ttf # 默认字体
 
 ```
 

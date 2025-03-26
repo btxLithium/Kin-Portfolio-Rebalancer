@@ -3,8 +3,7 @@
 Rebalancer module implementing different rebalancing strategies.
 """
 
-from backend.config.settings import THRESHOLD_PERCENT, CASH_FLOW_THRESHOLD, FUTURES_SETTLE, LEVERAGE
-from sheets_logger import SheetsLogger
+from backend.config.settings import Config
 
 class Rebalancer:
     """
@@ -20,8 +19,7 @@ class Rebalancer:
         """
         self.api_client = api_client
         self.portfolio_manager = portfolio_manager
-        self.sheets_logger = SheetsLogger()
-        self.settle = FUTURES_SETTLE
+        self.config = Config()
     
     def _execute_trades(self, trades):
         """
@@ -43,24 +41,29 @@ class Rebalancer:
             if abs(size) < 0.00001:
                 continue
             
+            # Skip USDT "trades" since it's the base currency
+            if contract == "USDT":
+                continue
+                
             # Determine whether we're buying or selling
             side = "buy" if size > 0 else "sell"
             
-            # Set leverage first
-            if contract != "USDT":
-                try:
-                    leverage = LEVERAGE.get(contract, 1)
-                    self.api_client.set_leverage(contract, leverage)
-                    print(f"Set leverage for {contract} to {leverage}x")
-                except Exception as e:
-                    print(f"Error setting leverage for {contract}: {e}")
+            # Set leverage first (default to 1x)
+            leverage = 1
+            try:
+                self.api_client.set_leverage(contract, leverage)
+                print(f"Set leverage for {contract} to {leverage}x")
+            except Exception as e:
+                print(f"Error setting leverage for {contract}: {e}")
             
             # Execute market order
             try:
                 result = self.api_client.create_futures_order(
                     contract=contract,
-                    size=size,
-                    price=None  # Market order
+                    size=abs(size),  # Size should be positive
+                    price=None,  # Market order
+                    leverage=leverage,
+                    reduce_only=False
                 )
                 
                 executed_trade = {
@@ -98,21 +101,19 @@ class Rebalancer:
         deviations = self.portfolio_manager.calculate_deviation()
         
         # Check if any deviation exceeds the threshold
-        rebalance_needed = any(abs(dev) > THRESHOLD_PERCENT for dev in deviations.values())
+        threshold = self.config.rebalance_threshold / 100.0  # Convert to decimal
+        rebalance_needed = any(abs(dev) > threshold for dev in deviations.values())
         
         if not rebalance_needed:
             return False
         
-        # Get current portfolio and target allocations
+        # Get current portfolio and calculate rebalance amounts
         current_portfolio = self.portfolio_manager.get_current_portfolio()
-        target_portfolio = self.portfolio_manager.get_rebalance_targets()
+        rebalance_amounts = self.portfolio_manager.calculate_rebalance_amounts()
         
         # Calculate trades needed
         trades = []
-        for contract, target_value in target_portfolio.items():
-            current_value = current_portfolio.get(contract, 0)
-            value_diff = target_value - current_value
-            
+        for contract, value_diff in rebalance_amounts.items():
             if abs(value_diff) < 1.0:  # Skip small differences
                 continue
             
@@ -120,16 +121,14 @@ class Rebalancer:
                 continue  # USDT balance will be adjusted as a result of other trades
             
             # Get current market price
-            ticker = self.api_client.get_ticker(contract)
-            market_price = float(ticker.get('last', 0))
+            market_price = self.api_client.get_futures_price(contract)
             
             if market_price <= 0:
                 print(f"Invalid market price for {contract}: {market_price}")
                 continue
             
-            # Calculate size (considering leverage)
-            leverage = LEVERAGE.get(contract, 1)
-            size = value_diff * leverage / market_price
+            # Calculate size (contracts to buy/sell)
+            size = value_diff / market_price
             
             trades.append({
                 'contract': contract,
@@ -141,18 +140,7 @@ class Rebalancer:
         print("Performing threshold-based rebalancing...")
         executed_trades = self._execute_trades(trades)
         
-        # Get final portfolio after rebalancing
-        final_portfolio = self.portfolio_manager.get_current_portfolio()
-        
-        # Log the rebalancing operation
-        self.sheets_logger.log_rebalance(
-            'threshold',
-            current_portfolio,
-            final_portfolio,
-            executed_trades
-        )
-        
-        return True
+        return len(executed_trades) > 0
     
     def cash_flow_rebalance(self):
         """
@@ -161,72 +149,51 @@ class Rebalancer:
         Returns:
             bool: True if rebalancing was performed, False otherwise
         """
-        # Check recent deposits
-        try:
-            transfers = self.api_client.get_wallet_transfers()
+        # Check USDT balance
+        portfolio = self.portfolio_manager.get_current_portfolio()
+        usdt_balance = portfolio.get("USDT", 0)
+        
+        # If USDT balance is less than the minimum threshold, skip
+        if usdt_balance < self.config.min_usdt_inflow:
+            return False
+                
+        # Calculate target allocations
+        target = self.portfolio_manager.get_target_portfolio()
+        total_value = sum(portfolio.values())
+        
+        # Calculate how much to allocate to each asset
+        trades = []
+        for contract, target_percent in target.items():
+            if contract == "USDT":
+                continue  # Skip USDT as it's the base currency
+                
+            target_value = total_value * target_percent
+            current_value = portfolio.get(contract, 0)
+            value_diff = target_value - current_value
             
-            # Filter for recent USDT deposits
-            recent_deposits = [
-                t for t in transfers
-                if t.get('currency') == 'USDT' and
-                t.get('direction') == 'in' and
-                float(t.get('amount', 0)) >= CASH_FLOW_THRESHOLD
-            ]
+            if abs(value_diff) < 1.0:  # Skip small differences
+                continue
             
-            if not recent_deposits:
-                return False
-                
-            # Get current portfolio and target allocations
-            current_portfolio = self.portfolio_manager.get_current_portfolio()
-            target_portfolio = self.portfolio_manager.get_rebalance_targets()
+            # Get current market price
+            market_price = self.api_client.get_futures_price(contract)
             
-            # Calculate trades needed
-            trades = []
-            for contract, target_value in target_portfolio.items():
-                if contract == "USDT":
-                    continue  # USDT balance will be adjusted as a result of other trades
-                    
-                current_value = current_portfolio.get(contract, 0)
-                value_diff = target_value - current_value
-                
-                if abs(value_diff) < 1.0:  # Skip small differences
-                    continue
-                
-                # Get current market price
-                ticker = self.api_client.get_ticker(contract)
-                market_price = float(ticker.get('last', 0))
-                
-                if market_price <= 0:
-                    print(f"Invalid market price for {contract}: {market_price}")
-                    continue
-                
-                # Calculate size (considering leverage)
-                leverage = LEVERAGE.get(contract, 1)
-                size = value_diff * leverage / market_price
-                
-                trades.append({
-                    'contract': contract,
-                    'size': size,
-                    'market_price': market_price
-                })
+            if market_price <= 0:
+                print(f"Invalid market price for {contract}: {market_price}")
+                continue
             
-            # Execute trades
+            # Calculate size (contracts to buy/sell)
+            size = value_diff / market_price
+            
+            trades.append({
+                'contract': contract,
+                'size': size,
+                'market_price': market_price
+            })
+        
+        # Execute trades
+        if trades:
             print("Performing cash-flow-based rebalancing...")
             executed_trades = self._execute_trades(trades)
-            
-            # Get final portfolio after rebalancing
-            final_portfolio = self.portfolio_manager.get_current_portfolio()
-            
-            # Log the rebalancing operation
-            self.sheets_logger.log_rebalance(
-                'cash_flow',
-                current_portfolio,
-                final_portfolio,
-                executed_trades
-            )
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error checking for cash flow rebalancing: {e}")
-            return False
+            return len(executed_trades) > 0
+        
+        return False
