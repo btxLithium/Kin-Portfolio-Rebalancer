@@ -7,7 +7,7 @@ import hashlib
 import hmac
 import base64
 import requests
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 import json
 
 from ..config.settings import API_HOST

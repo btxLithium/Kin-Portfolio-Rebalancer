@@ -2,7 +2,7 @@
 Configuration settings for the portfolio rebalancer.
 """
 import os
-from typing import Dict, List, Optional
+from typing import Optional
 import json
 
 # Default portfolio allocation (in percentage)

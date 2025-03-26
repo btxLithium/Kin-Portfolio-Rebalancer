@@ -1,7 +1,7 @@
 """
 Portfolio Manager for handling portfolio-related operations.
 """
-from typing import Dict, List, Any
+from typing import Dict
 from backend.config.settings import Config
 
 class PortfolioManager:

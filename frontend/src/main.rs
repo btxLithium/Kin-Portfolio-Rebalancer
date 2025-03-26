@@ -10,7 +10,7 @@ mod config; // Ensure this is declared if needed
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
-            .with_inner_size(egui::vec2(800.0, 600.0))
+            .with_inner_size(egui::vec2(555.0, 600.0))
             .with_min_inner_size(egui::vec2(300.0, 200.0)),
         ..Default::default()
     };
@@ -24,11 +24,10 @@ fn main() -> Result<(), eframe::Error> {
             // 加载自定义字体
             let mut fonts = FontDefinitions::default();
 
-            // 尝试不同的字体文件路径
             let font_paths = vec![
-                "fonts/OPlusSans3.ttf",          // 相对于根目录
-                "../fonts/OPlusSans3.ttf",       // 相对于frontend/target/release
-                "frontend/fonts/OPlusSans3.ttf", // 相对于项目根目录
+                "fonts/OPlusSans3.ttf",
+                "../fonts/OPlusSans3.ttf",
+                "frontend/fonts/OPlusSans3.ttf",
             ];
 
             let mut font_loaded = false;
@@ -66,7 +65,7 @@ fn main() -> Result<(), eframe::Error> {
             }
 
             if !font_loaded {
-                eprintln!("警告: 未能加载自定义字体，将使用默认字体");
+                eprintln!("未能加载自定义字体，将使用默认字体");
             }
 
             Ok(Box::new(RebalancerApp::new(cc)))

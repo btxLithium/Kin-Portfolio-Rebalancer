@@ -1,12 +1,9 @@
 use anyhow::{Result, anyhow};
-use egui::{Align, Button, Color32, Label, Layout, RichText, Spinner, TextEdit, Ui};
-use serde::{Deserialize, Serialize};
+use egui::{Align, Button, Color32, Label, Layout, RichText, TextEdit, Ui};
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Child, Command};
-use std::sync::{Arc, Mutex};
-use std::thread;
 
 use crate::config::{Config, PortfolioAllocation};
 
@@ -303,26 +300,43 @@ impl eframe::App for RebalancerApp {
                     ui.add_space(10.0);
 
                     // Asset allocations
-                    ui.columns(2, |columns| {
-                        columns[0].label("Bitcoin (BTC):");
-                        columns[1].text_edit_singleline(&mut self.portfolio_editor.btc_allocation);
+                    ui.horizontal(|ui| {
+                        ui.label("Bitcoin (3倍做多):");
+                        ui.vertical(|ui| {
+                            ui.add_sized(
+                                [58.0, 0.0],
+                                TextEdit::singleline(&mut self.portfolio_editor.btc_allocation),
+                            );
+                        });
+                        ui.label("%");
                     });
 
-                    ui.columns(2, |columns| {
-                        columns[0].label("Ethereum (ETH):");
-                        columns[1].text_edit_singleline(&mut self.portfolio_editor.eth_allocation);
+                    ui.horizontal(|ui| {
+                        ui.label("Ethereum (3倍做多):");
+                        ui.vertical(|ui| {
+                            ui.add_sized(
+                                [58.0, 0.0],
+                                TextEdit::singleline(&mut self.portfolio_editor.eth_allocation),
+                            );
+                        });
+                        ui.label("%");
                     });
 
-                    ui.columns(2, |columns| {
-                        columns[0].label("Litecoin (LTC):");
-                        columns[1].text_edit_singleline(&mut self.portfolio_editor.ltc_allocation);
+                    ui.horizontal(|ui| {
+                        ui.label("Litecoin (3倍做多):");
+                        ui.vertical(|ui| {
+                            ui.add_sized(
+                                [58.0, 0.0],
+                                TextEdit::singleline(&mut self.portfolio_editor.ltc_allocation),
+                            );
+                        });
+                        ui.label("%");
                     });
 
-                    ui.columns(2, |columns| {
-                        columns[0].label("USDT (auto-calculated):");
+                    ui.horizontal(|ui| {
+                        ui.label("USDT (auto-calculated):");
                         let usdt_display = self.portfolio_editor.get_usdt_display();
-                        columns[1].label(RichText::new(&usdt_display).strong());
-                        // Update the usdt_allocation field with the calculated value
+                        ui.label(RichText::new(format!("{}%", usdt_display)).strong());
                         self.portfolio_editor.usdt_allocation = usdt_display;
                     });
 
@@ -334,13 +348,18 @@ impl eframe::App for RebalancerApp {
 
                     ui.columns(2, |columns| {
                         columns[0].label("Rebalance Threshold(再平衡阈值) (%):");
-                        columns[1]
-                            .text_edit_singleline(&mut self.portfolio_editor.rebalance_threshold);
+                        columns[1].add_sized(
+                            [88.0, 0.0],
+                            TextEdit::singleline(&mut self.portfolio_editor.rebalance_threshold),
+                        );
                     });
 
                     ui.columns(2, |columns| {
                         columns[0].label("Min USDT Inflow(最小USDT流入):");
-                        columns[1].text_edit_singleline(&mut self.portfolio_editor.min_usdt_inflow);
+                        columns[1].add_sized(
+                            [88.0, 0.0],
+                            TextEdit::singleline(&mut self.portfolio_editor.min_usdt_inflow),
+                        );
                     });
 
                     ui.add_space(10.0);
@@ -381,27 +400,34 @@ impl eframe::App for RebalancerApp {
 
                     ui.add_space(10.0);
 
-                    if ui.button("Save API Settings").clicked() {
-                        match self.update_api_settings() {
-                            Ok(_) => {
-                                self.error_message = None;
-                                self.show_api_settings = false;
-                            }
-                            Err(e) => {
-                                self.error_message = Some(e.to_string());
+                    ui.horizontal(|ui| {
+                        if ui.button("Save API Settings").clicked() {
+                            match self.update_api_settings() {
+                                Ok(_) => {
+                                    self.error_message = None;
+                                    self.show_api_settings = false;
+                                }
+                                Err(e) => {
+                                    self.error_message = Some(e.to_string());
+                                }
                             }
                         }
-                    }
+
+                        if ui.button("Back").clicked() {
+                            self.show_api_settings = false;
+                        }
+                    });
                 });
             }
 
-            // Current portfolio display (simplified)
             ui.add_space(20.0);
             if self.is_running {
                 ui.group(|ui| {
-                    ui.heading("Current Portfolio Status");
-                    ui.label("Portfolio status display would be here in a completed application.");
-                    ui.label("(Would show current allocations, balances, etc.)");
+                    ui.heading("Rebalancer is running...");
+                    ui.hyperlink_to(
+                        "Check your positions on www.gate.io/en/testnet/futures_trade/USDT",
+                        "https://www.gate.io/en/testnet/futures_trade/USDT/BTC_USDT",
+                    );
                 });
             }
 

@@ -25,7 +25,7 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 - Threshold-based Rebalancing: Automatically adjusts the portfolio when asset allocation deviates from the target percentage by a set threshold.
 - Cash Flow Rebalancing: Automatically adjusts the portfolio when new stablecoins (USDT or USDC) are received.
 - Cross-platform desktop GUI built with Rust (egui).
-- Python backend handles api keys encryption, communication with Gate.io exchange and rebalancing logic.
+- (WIP) Python backend handles api keys encryption, communication with Gate.io exchange and rebalancing logic.
 
 ## What is a portfolio rebalancer?
 
@@ -39,15 +39,12 @@ It automatically executes trades to buy or sell assets when market fluctuations 
 - Python 3.8+
 - pip installed
 
-### Download Pre-built executables
+### Use Pre-built executables
 TODO:update link
-See the
-[releases page](https://github.com/jtroo/kanata/releases)
-for executables.
+<details>
+<summary>Instructions</summary>
 
-### Installation Steps
-
-1. Extract the downloaded zip file to any directory
+1. Download([releases page](https://github.com/jtroo/kanata/releases)) and extract the zip file to any directory
 
 2. Install Python dependencies
    ```
@@ -58,6 +55,7 @@ for executables.
    - Windows: Double-click `run.bat` or `frontend\target\release\kin-portfolio-rebalancer-gui.exe`
    - Mac/Linux: Run `./run.sh` in a terminal
 
+</details>
 
 ### Build it yourself
 
@@ -68,7 +66,6 @@ you can get the latest stable toolchain with `rustup update stable`.
 
 <details>
 <summary>Instructions</summary>
-
 
 Build yourself in Linux:
 
