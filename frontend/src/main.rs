@@ -1,11 +1,12 @@
 use eframe::egui::{self, FontDefinitions, FontFamily, ViewportBuilder};
+use std::env;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
 mod app;
 use app::RebalancerApp;
-mod config; // Ensure this is declared if needed
+mod config;
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
@@ -15,24 +16,41 @@ fn main() -> Result<(), eframe::Error> {
         ..Default::default()
     };
 
-    // Use run_native instead of run_simple_native
     eframe::run_native(
-        "KIN Portfolio Rebalancer",
+        "KIN Portfolio Rebalancer (TestNet Version)",
         options,
-        // The factory closure now needs to return Ok(...)
         Box::new(|cc| {
             // 加载自定义字体
             let mut fonts = FontDefinitions::default();
 
-            let font_paths = vec![
+            // 尝试将字体从build.rs复制到release目录
+            println!("尝试加载字体文件...");
+
+            // 打印当前工作目录
+            if let Ok(cwd) = env::current_dir() {
+                println!("当前工作目录: {:?}", cwd);
+            }
+
+            // 打印可执行文件路径
+            if let Ok(exe_path) = env::current_exe() {
+                println!("可执行文件路径: {:?}", exe_path);
+            }
+
+            // 定义多个可能的字体路径
+            let font_paths = [
                 "fonts/OPlusSans3.ttf",
+                "./fonts/OPlusSans3.ttf",
                 "../fonts/OPlusSans3.ttf",
                 "frontend/fonts/OPlusSans3.ttf",
+                "target/release/fonts/OPlusSans3.ttf",
+                "target/debug/fonts/OPlusSans3.ttf",
             ];
+
+            println!("字体搜索路径: {:?}", font_paths);
 
             let mut font_loaded = false;
 
-            for path in font_paths {
+            for &path in &font_paths {
                 if Path::new(path).exists() {
                     match fs::read(path) {
                         Ok(font_data) => {
@@ -70,6 +88,5 @@ fn main() -> Result<(), eframe::Error> {
 
             Ok(Box::new(RebalancerApp::new(cc)))
         }),
-        //  ^^^^ Use Ok() to wrap the Box<dyn App> in a Result
     )
 }

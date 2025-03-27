@@ -1,16 +1,16 @@
 [package]
 name = "kin-portfolio-rebalancer-gui"
 version = "0.1.0"
-edition = "2024"
-authors = ["Junhan Sui"]
-description = "GUI for kin portfolio rebalancer"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-eframe = "0.31.1"
-egui = "0.31.1"
+eframe = "0.31"
+dirs = "5.0.1"
+anyhow = "1.0.72"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-anyhow = "1.0"
-tokio = { version = "1.28.0", features = ["full"] }
-dirs = "5.0.1"
-chrono = "0.4.26"
+
+[build-dependencies]
+fs_extra = "1.3"

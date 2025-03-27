@@ -6,8 +6,9 @@ Main entry point for the portfolio rebalancing bot.
 import time
 import traceback
 import argparse
-from backend.api.gate_client import GateIOFuturesClient
-from portfolio_manager import PortfolioManager
+import os  # Add os import for environment variables
+from backend.api.gate_client import GateFuturesClient # Updated client name
+from backend.portfolio_manager import PortfolioManager # Corrected import path
 from backend.services.rebalancer import Rebalancer
 from backend.config.settings import Config
 
@@ -28,7 +29,8 @@ def initialize_api_and_components(config_path=None):
     config = Config(config_path)
     
     print("Initializing Gate.io Futures API client...")
-    api_client = GateIOFuturesClient(config.api_key, config.api_secret)
+    # The new client loads config internally via backend.config.settings.Config
+    api_client = GateFuturesClient() 
     
     print("Initializing Portfolio Manager...")
     portfolio_manager = PortfolioManager(api_client)
@@ -38,62 +40,26 @@ def initialize_api_and_components(config_path=None):
     
     return api_client, portfolio_manager, rebalancer
 
-def display_portfolio_status(portfolio_manager):
-    """
-    Display current portfolio status.
-    
-    Args:
-        portfolio_manager (PortfolioManager): Portfolio manager instance
-    """
-    try:
-        # Get portfolio data
-        portfolio = portfolio_manager.get_current_portfolio()
-        percentages = portfolio_manager.get_portfolio_percentages()
-        deviations = portfolio_manager.calculate_deviation()
-        
-        # Calculate total value
-        total_value = sum(portfolio.values())
-        
-        # Display summary
-        print("\n" + "="*50)
-        print(f"PORTFOLIO SUMMARY (Total Value: {total_value:.2f} USDT)")
-        print("="*50)
-        
-        print(f"{'Asset':<10} {'Current %':<10} {'Target %':<10} {'Deviation':<10} {'Value (USDT)':<15}")
-        print("-"*55)
-        
-        target = portfolio_manager.get_target_portfolio()
-        for asset in portfolio_manager.supported_assets:
-            current_percent = percentages.get(asset, 0) * 100
-            target_percent = target.get(asset, 0) * 100
-            deviation = deviations.get(asset, 0) * 100
-            value = portfolio.get(asset, 0)
-            
-            print(f"{asset:<10} {current_percent:>8.2f}% {target_percent:>8.2f}% {deviation:>8.2f}% {value:>13.2f}")
-        
-        print("="*50 + "\n")
-    except Exception as e:
-        print(f"Error displaying portfolio status: {e}")
-        traceback.print_exc()
-
 def main():
     """
     Main function to run the rebalancing bot.
     """
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Portfolio Rebalancer')
-    parser.add_argument('--config', type=str, help='Path to config file')
-    args = parser.parse_args()
+    # Get config from environment or parse args
+    config_path = os.environ.get('PORTFOLIO_CONFIG')
     
-    print("Starting Portfolio Rebalancing Bot...")
+    # If not in environment, parse command line
+    if not config_path:
+        parser = argparse.ArgumentParser(description='Portfolio Rebalancer')
+        parser.add_argument('--config', type=str, help='Path to config file')
+        args = parser.parse_args()
+        config_path = args.config
+    
+    print(f"Starting Portfolio Rebalancing Bot with config: {config_path}")
     
     # Initialize components
-    api_client, portfolio_manager, rebalancer = initialize_api_and_components(args.config)
+    api_client, portfolio_manager, rebalancer = initialize_api_and_components(config_path)
     
     try:
-        # Initial portfolio status
-        display_portfolio_status(portfolio_manager)
-        
         # Main loop
         while True:
             print(f"\nChecking portfolio at {time.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -116,10 +82,6 @@ def main():
                     print("Cash-flow-based rebalancing performed!")
                 else:
                     print("No cash-flow-based rebalancing needed.")
-                
-                # Display updated portfolio status if rebalancing occurred
-                if threshold_rebalanced or cash_flow_rebalanced:
-                    display_portfolio_status(portfolio_manager)
                 
             except Exception as e:
                 print(f"Error during rebalancing cycle: {e}")

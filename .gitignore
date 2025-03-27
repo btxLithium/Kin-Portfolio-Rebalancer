@@ -1,2 +1,4 @@
 target/
 frontend/Cargo.lock
+__pycache__/
+portfolio_rebalancer.egg-info/

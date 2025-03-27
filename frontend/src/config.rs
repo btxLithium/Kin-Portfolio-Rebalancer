@@ -2,19 +2,23 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PortfolioAllocation {
-    pub btc_usdt: f64,
-    pub eth_usdt: f64,
-    pub ltc_usdt: f64,
-    pub usdt: f64,
+    #[serde(rename = "BTC_USDT")]
+    pub BTC_USDT: f64,
+    #[serde(rename = "ETH_USDT")]
+    pub ETH_USDT: f64,
+    #[serde(rename = "LTC_USDT")]
+    pub LTC_USDT: f64,
+    #[serde(rename = "USDT")]
+    pub USDT: f64,
 }
 
 impl Default for PortfolioAllocation {
     fn default() -> Self {
         Self {
-            btc_usdt: 25.0,
-            eth_usdt: 15.0,
-            ltc_usdt: 10.0,
-            usdt: 50.0,
+            BTC_USDT: 25.0,
+            ETH_USDT: 15.0,
+            LTC_USDT: 10.0,
+            USDT: 50.0,
         }
     }
 }

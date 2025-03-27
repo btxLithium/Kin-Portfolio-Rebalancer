@@ -1,12 +1,13 @@
 """
 Portfolio Manager for handling portfolio-related operations.
 """
-from typing import Dict
+from typing import Dict, Tuple
 from backend.config.settings import Config
 
 class PortfolioManager:
     """
-    Portfolio Manager class responsible for portfolio-related operations.
+    Portfolio Manager class responsible for portfolio data operations.
+    纯数据层：负责获取投资组合数据、资产价格和保证金使用情况
     """
     def __init__(self, api_client):
         """
@@ -21,97 +22,147 @@ class PortfolioManager:
     
     def get_current_portfolio(self) -> Dict[str, float]:
         """
-        Get current portfolio with asset values in USDT.
+        获取当前投资组合，基于全仓模式下的保证金使用情况
         
         Returns:
-            Dict mapping asset to value in USDT
+            Dict mapping asset to margin value in USDT
         """
-        # Get futures account
+        # 获取账户信息
         account = self.api_client.get_futures_account()
-        total = float(account.get("total", 0))
-        
-        # Get positions
+        try:
+            total_assets = float(account.get("total", "0"))
+        except (ValueError, TypeError):
+            total_assets = 0.0
+            print("Warning: Could not convert account total to float.")
+
+        # 获取持仓信息
         positions = self.api_client.get_futures_positions()
         
-        # Initialize portfolio with all supported assets at 0
+        # 初始化投资组合
         portfolio = {asset: 0.0 for asset in self.supported_assets}
         
-        # Set USDT balance
-        portfolio["USDT"] = total
+        # 计算已使用的保证金
+        used_margin = 0.0
         
-        # Add position values
+        # 计算每个仓位
         for position in positions:
             contract = position.get("contract")
             if contract in self.supported_assets:
-                # For futures positions, use size * mark_price
-                size = float(position.get("size", 0))
-                mark_price = float(position.get("mark_price", 0))
-                value = abs(size) * mark_price
-                
-                # Subtract the value from USDT since futures use margin
-                portfolio["USDT"] -= value
-                portfolio[contract] = value
+                try:
+                    size = float(position.get("size", "0"))
+                    mark_price = float(position.get("mark_price", "0"))
+                    LEVERAGE = 3  # 默认3倍杠杆
+                    
+                    if mark_price <= 0:
+                        print(f"Warning: Invalid mark price ({mark_price}) for {contract}. Skipping.")
+                        continue
+                    
+                    # 计算使用的保证金
+                    position_value = abs(size) * mark_price
+                    margin_used = position_value / LEVERAGE
+                    used_margin += margin_used
+                    
+                    print(f"Position {contract}: Size={size}, Price={mark_price}, Leverage={LEVERAGE}, Value={position_value:.2f}, Margin={margin_used:.2f}")
+                    
+                    portfolio[contract] = margin_used
+                    
+                except (ValueError, TypeError) as e:
+                    print(f"Warning: Could not calculate margin for {contract}: {e}. Skipping.")
+                    continue
+        
+        # 可用保证金记为USDT
+        portfolio["USDT"] = max(0.0, total_assets - used_margin)
+        
+        # 打印总结
+        print(f"\n== 账户保证金状态 ==")
+        print(f"总资产: {total_assets:.2f} USDT")
+        print(f"已用保证金: {used_margin:.2f} USDT")
+        print(f"可用保证金: {portfolio['USDT']:.2f} USDT")
         
         return portfolio
     
-    def get_portfolio_percentages(self) -> Dict[str, float]:
-        """
-        Get current portfolio allocation percentages.
-        
-        Returns:
-            Dict mapping asset to percentage (0.0-1.0)
-        """
-        portfolio = self.get_current_portfolio()
-        total_value = sum(portfolio.values())
-        
-        if total_value == 0:
-            return {asset: 0.0 for asset in self.supported_assets}
-        
-        return {asset: value / total_value for asset, value in portfolio.items()}
-    
     def get_target_portfolio(self) -> Dict[str, float]:
         """
-        Get target portfolio allocation percentages.
+        获取目标投资组合配置
         
         Returns:
             Dict mapping asset to target percentage (0.0-1.0)
         """
-        return {
-            "BTC_USDT": self.config.portfolio_allocation["BTC_USDT"] / 100.0,
-            "ETH_USDT": self.config.portfolio_allocation["ETH_USDT"] / 100.0,
-            "LTC_USDT": self.config.portfolio_allocation["LTC_USDT"] / 100.0,
-            "USDT": self.config.portfolio_allocation["USDT"] / 100.0
+        # 读取配置文件中的配置比例，不使用USDT的比例（将自动计算）
+        targets = {
+            "BTC_USDT": self.config.portfolio_allocation.BTC_USDT / 100.0,
+            "ETH_USDT": self.config.portfolio_allocation.ETH_USDT / 100.0,
+            "LTC_USDT": self.config.portfolio_allocation.LTC_USDT / 100.0,
         }
+        
+        # 计算剩余百分比给USDT
+        crypto_total = sum(targets.values())
+        targets["USDT"] = max(0.0, 1.0 - crypto_total)
+        
+        return targets
     
-    def calculate_deviation(self) -> Dict[str, float]:
+    def get_market_prices(self) -> Dict[str, float]:
         """
-        Calculate deviation from target portfolio.
+        获取所有支持资产的市场价格
         
         Returns:
-            Dict mapping asset to deviation percentage (-1.0 to 1.0)
+            Dict mapping asset to current market price
         """
-        current = self.get_portfolio_percentages()
-        target = self.get_target_portfolio()
-        
-        return {asset: current.get(asset, 0) - target.get(asset, 0) for asset in self.supported_assets}
-    
-    def calculate_rebalance_amounts(self) -> Dict[str, float]:
-        """
-        Calculate amounts needed to rebalance portfolio to target allocation.
-        Positive values mean buy, negative values mean sell.
-        
-        Returns:
-            Dict mapping asset to amount in USDT to buy/sell
-        """
-        portfolio = self.get_current_portfolio()
-        total_value = sum(portfolio.values())
-        target = self.get_target_portfolio()
-        
-        rebalance_amounts = {}
-        
+        prices = {}
         for asset in self.supported_assets:
-            current_value = portfolio.get(asset, 0)
-            target_value = total_value * target.get(asset, 0)
-            rebalance_amounts[asset] = target_value - current_value
+            if asset == "USDT":
+                prices[asset] = 1.0  # USDT的价格固定为1
+                continue
+                
+            price = self.api_client.get_futures_price(asset)
+            if price <= 0:
+                print(f"Warning: Invalid market price for {asset}: {price}")
+                prices[asset] = 0.0
+            else:
+                prices[asset] = price
+                
+        return prices
+    
+    def get_portfolio_summary(self) -> Dict:
+        """
+        获取投资组合汇总信息，包括当前配置、目标配置和偏差
         
-        return rebalance_amounts
+        Returns:
+            Dict containing portfolio summary information
+        """
+        current_portfolio = self.get_current_portfolio()
+        target_allocations = self.get_target_portfolio()
+        
+ 
+        # 计算当前百分比
+        current_percentages = {}
+        for asset, value in current_portfolio.items():
+            current_percentages[asset] = (value / sum(current_portfolio.values())) if sum(current_portfolio.values()) > 0 else 0.0
+        
+        # 计算偏差
+        deviations = {}
+        for asset in self.supported_assets:
+            current_pct = current_percentages.get(asset, 0.0)
+            target_pct = target_allocations.get(asset, 0.0)
+            deviations[asset] = current_pct - target_pct
+        
+        # 打印当前状态
+        print("\n== 当前投资组合 ==")
+        print(f"{'资产':<10} {'保证金 (USDT)':<15} {'当前比例':<10} {'目标比例':<10} {'偏差':<10}")
+        print("-" * 60)
+        for asset in self.supported_assets:
+            current_value = current_portfolio.get(asset, 0)
+            current_pct = current_percentages.get(asset, 0) * 100
+            target_pct = target_allocations.get(asset, 0) * 100
+            dev_pct = deviations.get(asset, 0) * 100
+            print(f"{asset:<10} {current_value:>15.2f} {current_pct:>9.2f}% {target_pct:>9.2f}% {dev_pct:>9.2f}%")
+        print(f"总资产: {sum(current_portfolio.values()):.2f} USDT\n")
+        
+        return {
+            "current_portfolio": current_portfolio,
+            "target_allocations": target_allocations,
+            "current_percentages": current_percentages,
+            "deviations": deviations,
+            "total_assets": sum(current_portfolio.values()),
+            "used_margin": sum(current_portfolio.values()) - current_portfolio["USDT"]
+        }

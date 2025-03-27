@@ -11,7 +11,7 @@
   <h1>Kin Portfolio Rebalancer</h1>
 </div>
 
-<p align="center">Cross-platform automated portfolio rebalancer for <a href="https://gate.io/">Gate.io</a><br>跨平台投资组合再平衡机器人，基于Gate.io交易所API</p>
+<p align="center">Cross-platform automated portfolio rebalancer for <a href="https://gate.io/">Gate.io</a><br>跨平台仓位再平衡机器人，基于Gate.io交易所API</p>
 
 <p align="center">
 <img alt="Static Badge" src="https://img.shields.io/badge/license-MIT-blue">
@@ -24,8 +24,8 @@ Read this in [简体中文](https://github.com/btxLithium/Kin-Portfolio-Rebalanc
 
 - Threshold-based Rebalancing: Automatically adjusts the portfolio when asset allocation deviates from the target percentage by a set threshold.
 - Cash Flow Rebalancing: Automatically adjusts the portfolio when new stablecoins (USDT or USDC) are received.
-- Cross-platform desktop GUI built with Rust (egui).
-- (WIP) Python backend handles api keys encryption, communication with Gate.io exchange and rebalancing logic.
+- Cross-platform desktop GUI built with Rust (using [egui/eframe](https://github.com/emilk/egui)).
+- Python backend handles API keys encryption(WIP), communication with Gate.io exchange and rebalancing logic.
 
 ## What is a portfolio rebalancer?
 
